@@ -5,28 +5,30 @@ package provider
 
 import (
 	"testing"
+  "fmt"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccExampleDataSource(t *testing.T) {
+  fmt.Println("TESTING PEOPLE DATA SOURCE")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Read testing
 			{
-				Config: testAccExampleDataSourceConfig,
+				Config: testAccPeopleDataSourceConfig,
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("data.scaffolding_example.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("data.planningcenter_people.test", "id", "138378248"),
 				),
 			},
 		},
 	})
 }
 
-const testAccExampleDataSourceConfig = `
-data "scaffolding_example" "test" {
-  configurable_attribute = "example"
+const testAccPeopleDataSourceConfig = `
+data "planningcenter_people" "test" {
+  id = "138378248"
 }
 `
