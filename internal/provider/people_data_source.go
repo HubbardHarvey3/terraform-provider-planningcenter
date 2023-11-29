@@ -24,7 +24,6 @@ var (
 	_ datasource.DataSourceWithConfigure = &PeopleDataSource{}
 )
 
-
 type Root struct {
 	Links interface{} `json:"links"`
 	Data  Person      `json:"data"`
@@ -78,9 +77,10 @@ type PeopleDataSource struct {
 
 // PeopleDataSourceModel describes the data source data model.
 type PeopleDataSourceModel struct {
-	Gender types.String `tfsdk:"gender"`
-	Id     string `tfsdk:"id"`
-	Name   types.String `tfsdk:"name"`
+	Gender             types.String `tfsdk:"gender"`
+	Id                 string       `tfsdk:"id"`
+	Name               types.String `tfsdk:"name"`
+	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 }
 
 func (d *PeopleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -104,6 +104,9 @@ func (d *PeopleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the person",
 				Optional:            true,
+			},
+			"site_administrator": schema.BoolAttribute{
+				Optional: true,
 			},
 		},
 	}
@@ -142,7 +145,7 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	//Fetch the data
 	app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
-	endpoint := "https://api.planningcenteronline.com/people/v2/people/"+data.Id
+	endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id
 	request, err := http.NewRequest("GET", endpoint, nil)
 
 	request.SetBasicAuth(app_id, secret_token)
@@ -167,7 +170,8 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	}
 
 	data.Name = types.StringValue(jsonBody.Data.Attributes.Name)
-  data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")

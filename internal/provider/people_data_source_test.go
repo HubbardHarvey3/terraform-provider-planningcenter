@@ -4,14 +4,14 @@
 package provider
 
 import (
+	"fmt"
 	"testing"
-  "fmt"
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
 func TestAccExampleDataSource(t *testing.T) {
-  fmt.Println("TESTING PEOPLE DATA SOURCE")
+	fmt.Println("TESTING PEOPLE DATA SOURCE")
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,

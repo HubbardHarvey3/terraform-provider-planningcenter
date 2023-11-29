@@ -10,13 +10,28 @@ provider "planningcenter" {
 }
 
 data "planningcenter_people" "test" {
-  id = ""
+  id = "138378248"
+}
+
+resource "planningcenter_people" "new_test" {
+  first_name         = "Tester"
+  last_name          = "McTesterson"
+  site_administrator = false
+  gender             = "male"
 }
 
 output "name" {
-   value =  data.planningcenter_people.test.name
+  value = planningcenter_people.new_test.first_name
 }
 
 output "gender" {
-   value = data.planningcenter_people.test.gender
+  value = planningcenter_people.new_test.gender
+}
+
+output "tester_id" {
+  value = planningcenter_people.new_test.id
+}
+
+output "site_admin" {
+  value = data.planningcenter_people.test.site_administrator
 }

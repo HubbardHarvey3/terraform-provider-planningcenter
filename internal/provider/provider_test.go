@@ -4,9 +4,9 @@
 package provider
 
 import (
+	"fmt"
+	"os"
 	"testing"
-  "os"
-  "fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 	"github.com/hashicorp/terraform-plugin-go/tfprotov6"
@@ -27,12 +27,12 @@ func testAccPreCheck(t *testing.T) {
 	app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 
-  if app_id == "" {
-    fmt.Println("No PC_APP_ID env var")
-  }
+	if app_id == "" {
+		fmt.Println("No PC_APP_ID env var")
+	}
 
-  if secret_token == "" {
-    fmt.Println("No PC_SECRET_TOKEN env var")
-  }
+	if secret_token == "" {
+		fmt.Println("No PC_SECRET_TOKEN env var")
+	}
 
 }
