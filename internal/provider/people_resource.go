@@ -22,6 +22,38 @@ import (
 )
 
 //Setup Structs to marshall json into
+type RootResource struct {
+	Links interface{} `json:"links"`
+	Data  PersonResource      `json:"data"`
+}
+type PersonResource struct {
+	Type       string     `json:"type"`
+	ID         string     `json:"id"`
+	Attributes AttributesResource `json:"attributes"`
+}
+
+type AttributesResource struct {
+	AccountingAdministrator   bool      `json:"accounting_administrator"`
+	Anniversary               interface{} `json:"anniversary"`
+	Avatar                    string    `json:"avatar"`
+	Birthdate                 string    `json:"birthdate"`
+	Child                     bool      `json:"child"`
+	FirstName                 types.String    `tfsdk:"first_name"`
+	Gender                    types.String    `tfsdk:"gender"`
+	GivenName                 interface{} `json:"given_name"`
+	Grade                     interface{} `json:"grade"`
+	GraduationYear            interface{} `json:"graduation_year"`
+	InactivatedAt             interface{} `json:"inactivated_at"`
+	LastName                  types.String    `tfsdk:"last_name"`
+	MedicalNotes              interface{} `json:"medical_notes"`
+	Membership                string    `json:"membership"`
+	MiddleName                interface{} `json:"middle_name"`
+	Nickname                  interface{} `json:"nickname"`
+	PeoplePermissions         string    `json:"people_permissions"`
+	RemoteID                  interface{} `json:"remote_id"`
+	SiteAdministrator         bool      `json:"site_administrator"`
+	Status                    string    `json:"status"`
+}
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &PeopleResource{}
@@ -38,12 +70,12 @@ type PeopleResource struct {
 
 // PeopleResourceModel describes the resource data model.
 type PeopleResourceModel struct {
-	Gender             string `tfsdk:"gender"`
+	Gender             types.String `tfsdk:"gender"`
 	Id                 basetypes.StringValue `tfsdk:"id"`
 	Name               types.String `tfsdk:"name"`
 	Site_Administrator bool   `tfsdk:"site_administrator"`
-	First_Name         string `tfsdk:"first_name"`
-	Last_Name          string `tfsdk:"last_name"`
+	First_Name         types.String `tfsdk:"first_name"`
+	Last_Name          types.String `tfsdk:"last_name"`
 }
 
 func (r *PeopleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -120,10 +152,10 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 	endpoint := "https://api.planningcenteronline.com/people/v2/people/"
 
-	goBody := Root{
-		Data: Person{
+	goBody := RootResource{
+		Data: PersonResource{
 			Type: "Person",
-			Attributes: Attributes{
+			Attributes: AttributesResource{
 				FirstName:         data.First_Name,
 				LastName:          data.Last_Name,
 				SiteAdministrator: data.Site_Administrator,
@@ -133,7 +165,8 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	// Convert struct to JSON
-	jsonData, err := json.Marshal(goBody)
+	jsonData, err := json.MarshalIndent(goBody, "", " ")
+  fmt.Println(jsonData)
 	if err != nil {
 		fmt.Println("Error marshalling JSON:", err)
 		return
@@ -183,7 +216,6 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 	endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id.ValueString()
 	request, err := http.NewRequest("GET", endpoint, nil)
-
 	request.SetBasicAuth(app_id, secret_token)
 
 	if err != nil {
@@ -198,16 +230,17 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
-	var jsonBody Root
+	var jsonBody RootResource
 	//var jsonBody map[string]map[string]interface{}
 	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
 	}
 
-	data.Name = types.StringValue(jsonBody.Data.Attributes.Name)
 	data.Gender = jsonBody.Data.Attributes.Gender
 	data.Site_Administrator = jsonBody.Data.Attributes.SiteAdministrator
+  data.First_Name = jsonBody.Data.Attributes.FirstName
+  data.Last_Name = jsonBody.Data.Attributes.LastName
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

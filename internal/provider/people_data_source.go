@@ -81,6 +81,8 @@ type PeopleDataSourceModel struct {
 	Id                 string       `tfsdk:"id"`
 	Name               types.String `tfsdk:"name"`
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
+	FirstName               types.String `tfsdk:"first_name"`
+	LastName               types.String `tfsdk:"last_name"`
 }
 
 func (d *PeopleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -106,6 +108,15 @@ func (d *PeopleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Optional:            true,
 			},
 			"site_administrator": schema.BoolAttribute{
+        Computed: true,
+				Optional: true,
+			},
+			"first_name": schema.StringAttribute{
+				MarkdownDescription: "First Name of the person",
+				Optional: true,
+			},
+			"last_name": schema.StringAttribute{
+				MarkdownDescription: "Last Name of the person",
 				Optional: true,
 			},
 		},
@@ -172,6 +183,7 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	data.Name = types.StringValue(jsonBody.Data.Attributes.Name)
 	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
 	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")
