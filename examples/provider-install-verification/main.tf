@@ -14,10 +14,10 @@ data "planningcenter_people" "test" {
 }
 
 resource "planningcenter_people" "new_test" {
-  first_name         = "Tester"
+  first_name         = "Testy"
   last_name          = "McTesterson"
   site_administrator = false
-  gender             = "male"
+  gender             = "Male"
 }
 
 output "name" {

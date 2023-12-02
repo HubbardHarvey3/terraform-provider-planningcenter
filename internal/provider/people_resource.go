@@ -17,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 	// "github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -38,13 +37,13 @@ type AttributesResource struct {
 	Avatar                    string    `json:"avatar"`
 	Birthdate                 string    `json:"birthdate"`
 	Child                     bool      `json:"child"`
-	FirstName                 types.String    `tfsdk:"first_name"`
-	Gender                    types.String    `tfsdk:"gender"`
+	FirstName                 string        `json:"first_name"`
+	Gender                    string        `json:"gender"`
 	GivenName                 interface{} `json:"given_name"`
 	Grade                     interface{} `json:"grade"`
 	GraduationYear            interface{} `json:"graduation_year"`
 	InactivatedAt             interface{} `json:"inactivated_at"`
-	LastName                  types.String    `tfsdk:"last_name"`
+	LastName                  string        `json:"last_name"`
 	MedicalNotes              interface{} `json:"medical_notes"`
 	Membership                string    `json:"membership"`
 	MiddleName                interface{} `json:"middle_name"`
@@ -71,9 +70,9 @@ type PeopleResource struct {
 // PeopleResourceModel describes the resource data model.
 type PeopleResourceModel struct {
 	Gender             types.String `tfsdk:"gender"`
-	Id                 basetypes.StringValue `tfsdk:"id"`
+	Id                 types.String `tfsdk:"id"`
 	Name               types.String `tfsdk:"name"`
-	Site_Administrator bool   `tfsdk:"site_administrator"`
+	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 	First_Name         types.String `tfsdk:"first_name"`
 	Last_Name          types.String `tfsdk:"last_name"`
 }
@@ -94,7 +93,7 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Person's ID",
-				Optional:            true,
+        Computed: true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the person",
@@ -142,7 +141,9 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-
+  fmt.Println("**************************************************************")
+  fmt.Printf("%v\n", data)
+  fmt.Println("**************************************************************")
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -152,21 +153,20 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 	endpoint := "https://api.planningcenteronline.com/people/v2/people/"
 
-	goBody := RootResource{
-		Data: PersonResource{
-			Type: "Person",
-			Attributes: AttributesResource{
-				FirstName:         data.First_Name,
-				LastName:          data.Last_Name,
-				SiteAdministrator: data.Site_Administrator,
-				Gender:            data.Gender,
-			},
-		},
-	}
+  // Map the Plan/Config to the RootResource type to send to PC
+  var responseData RootResource
+  responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
+  responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
+  responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
+  responseData.Data.Attributes.Gender = data.Gender.ValueString()
+
 
 	// Convert struct to JSON
-	jsonData, err := json.MarshalIndent(goBody, "", " ")
-  fmt.Println(jsonData)
+	jsonData, err := json.Marshal(&responseData)
+  fmt.Println("**************************************************************")
+  fmt.Println(string(jsonData))
+  fmt.Println("**************************************************************")
+
 	if err != nil {
 		fmt.Println("Error marshalling JSON:", err)
 		return
@@ -189,13 +189,22 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 		fmt.Println("Error sending request: ", err)
 		return
 	}
-	fmt.Println(response)
 
-	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
-	//	tflog.Trace(ctx, "created a resource")
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+	var jsonBody RootResource
+	err = json.Unmarshal(body, &jsonBody)
+	if err != nil {
+		fmt.Print(err)
+	}
 
-
+	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+  data.Id = types.StringValue(jsonBody.Data.ID)
+	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+  data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+  data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -210,40 +219,59 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
+  if (data.Id.ValueString() == "") {
+    fmt.Println("_______________Nothing to read for Nil ID__________________")
+    return
+  } else {
+    //Fetch the data
+    app_id := os.Getenv("PC_APP_ID")
+    secret_token := os.Getenv("PC_SECRET_TOKEN")
+    endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id.ValueString()
 
-	//Fetch the data
-	app_id := os.Getenv("PC_APP_ID")
-	secret_token := os.Getenv("PC_SECRET_TOKEN")
-	endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id.ValueString()
-	request, err := http.NewRequest("GET", endpoint, nil)
-	request.SetBasicAuth(app_id, secret_token)
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println(endpoint)
+    fmt.Println(data)
+    fmt.Println(req.State)
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    request, err := http.NewRequest("GET", endpoint, nil)
+    request.SetBasicAuth(app_id, secret_token)
 
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	response, err := r.client.Do(request)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-	var jsonBody RootResource
-	//var jsonBody map[string]map[string]interface{}
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		fmt.Print(err)
-	}
+    if err != nil {
+      fmt.Println("Error:", err)
+      return
+    }
+    response, err := r.client.Do(request)
+    if err != nil {
+      fmt.Println("Error: ", err)
+    }
+    body, err := io.ReadAll(response.Body)
+    if err != nil {
+      fmt.Println("Error: ", err)
+    }
+    var jsonBody RootResource
+    err = json.Unmarshal(body, &jsonBody)
+    if err != nil {
+      fmt.Print(err)
+    }
+    // Overwrite the fetched data to the state
+    data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+    data.Id = types.StringValue(jsonBody.Data.ID)
+    data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+    data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+    data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 
-	data.Gender = jsonBody.Data.Attributes.Gender
-	data.Site_Administrator = jsonBody.Data.Attributes.SiteAdministrator
-  data.First_Name = jsonBody.Data.Attributes.FirstName
-  data.Last_Name = jsonBody.Data.Attributes.LastName
-
-	// Save updated data into Terraform state
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    fmt.Println(&data)
+    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+    // Save updated data into Terraform state
+    resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+  }
 }
 
 func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
