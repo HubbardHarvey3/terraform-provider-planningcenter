@@ -5,9 +5,8 @@ package provider
 
 import (
 	"context"
-	"fmt"
-	"net/http"
 	"os"
+	"terraform-provider-planningcenter/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -25,22 +24,6 @@ type PlanningCenterProvider struct {
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
-}
-
-type PC_Client struct {
-	*http.Client
-	id       string
-	token    string
-	endpoint string
-}
-
-func NewPCClient(id, token, endpoint string) *PC_Client {
-	return &PC_Client{
-		Client:   &http.Client{},
-		id:       id,
-		token:    token,
-		endpoint: endpoint,
-	}
 }
 
 // PlanningCenterProviderModel describes the provider data model.
@@ -86,11 +69,9 @@ func (p *PlanningCenterProvider) Configure(ctx context.Context, req provider.Con
 	}
 	app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
-	endpoint := "https://api.planningcenteronline.com/"
-	fmt.Printf("App ID = %v", app_id)
 
 	// Example client configuration for data sources and resources
-	client := NewPCClient(app_id, secret_token, endpoint)
+	client := client.NewPCClient(app_id, secret_token, client.HostURL)
 	resp.DataSourceData = client
 	resp.ResourceData = client
 }

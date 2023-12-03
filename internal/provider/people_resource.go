@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"terraform-provider-planningcenter/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -20,38 +21,38 @@ import (
 	// "github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
-//Setup Structs to marshall json into
+// Setup Structs to marshall json into
 type RootResource struct {
-	Links interface{} `json:"links"`
-	Data  PersonResource      `json:"data"`
+	Links interface{}    `json:"links"`
+	Data  PersonResource `json:"data"`
 }
 type PersonResource struct {
-	Type       string     `json:"type"`
-	ID         string     `json:"id"`
+	Type       string             `json:"type"`
+	ID         string             `json:"id"`
 	Attributes AttributesResource `json:"attributes"`
 }
 
 type AttributesResource struct {
-	AccountingAdministrator   bool      `json:"accounting_administrator"`
-	Anniversary               interface{} `json:"anniversary"`
-	Avatar                    string    `json:"avatar"`
-	Birthdate                 string    `json:"birthdate"`
-	Child                     bool      `json:"child"`
-	FirstName                 string        `json:"first_name"`
-	Gender                    string        `json:"gender"`
-	GivenName                 interface{} `json:"given_name"`
-	Grade                     interface{} `json:"grade"`
-	GraduationYear            interface{} `json:"graduation_year"`
-	InactivatedAt             interface{} `json:"inactivated_at"`
-	LastName                  string        `json:"last_name"`
-	MedicalNotes              interface{} `json:"medical_notes"`
-	Membership                string    `json:"membership"`
-	MiddleName                interface{} `json:"middle_name"`
-	Nickname                  interface{} `json:"nickname"`
-	PeoplePermissions         string    `json:"people_permissions"`
-	RemoteID                  interface{} `json:"remote_id"`
-	SiteAdministrator         bool      `json:"site_administrator"`
-	Status                    string    `json:"status"`
+	AccountingAdministrator bool        `json:"accounting_administrator"`
+	Anniversary             interface{} `json:"anniversary"`
+	Avatar                  string      `json:"avatar"`
+	Birthdate               string      `json:"birthdate"`
+	Child                   bool        `json:"child"`
+	FirstName               string      `json:"first_name"`
+	Gender                  string      `json:"gender"`
+	GivenName               interface{} `json:"given_name"`
+	Grade                   interface{} `json:"grade"`
+	GraduationYear          interface{} `json:"graduation_year"`
+	InactivatedAt           interface{} `json:"inactivated_at"`
+	LastName                string      `json:"last_name"`
+	MedicalNotes            interface{} `json:"medical_notes"`
+	Membership              string      `json:"membership"`
+	MiddleName              interface{} `json:"middle_name"`
+	Nickname                interface{} `json:"nickname"`
+	PeoplePermissions       string      `json:"people_permissions"`
+	RemoteID                interface{} `json:"remote_id"`
+	SiteAdministrator       bool        `json:"site_administrator"`
+	Status                  string      `json:"status"`
 }
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -64,7 +65,7 @@ func NewPeopleResource() resource.Resource {
 
 // PeopleResource defines the resource implementation.
 type PeopleResource struct {
-	client *PC_Client
+	client *client.PC_Client
 }
 
 // PeopleResourceModel describes the resource data model.
@@ -93,7 +94,7 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Person's ID",
-        Computed: true,
+				Computed:            true,
 			},
 			"name": schema.StringAttribute{
 				MarkdownDescription: "Name of the person",
@@ -101,7 +102,7 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"site_administrator": schema.BoolAttribute{
 				Default:  booldefault.StaticBool(false),
-        Computed: true,
+				Computed: true,
 				Optional: true,
 			},
 			"first_name": schema.StringAttribute{
@@ -122,7 +123,7 @@ func (r *PeopleResource) Configure(ctx context.Context, req resource.ConfigureRe
 		return
 	}
 
-	client, ok := req.ProviderData.(*PC_Client)
+	client, ok := req.ProviderData.(*client.PC_Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -141,9 +142,6 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-  fmt.Println("**************************************************************")
-  fmt.Printf("%v\n", data)
-  fmt.Println("**************************************************************")
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -153,19 +151,15 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 	endpoint := "https://api.planningcenteronline.com/people/v2/people/"
 
-  // Map the Plan/Config to the RootResource type to send to PC
-  var responseData RootResource
-  responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
-  responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
-  responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
-  responseData.Data.Attributes.Gender = data.Gender.ValueString()
-
+	// Map the Plan/Config to the RootResource type to send to PC
+	var responseData RootResource
+	responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
+	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
+	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
+	responseData.Data.Attributes.Gender = data.Gender.ValueString()
 
 	// Convert struct to JSON
 	jsonData, err := json.Marshal(&responseData)
-  fmt.Println("**************************************************************")
-  fmt.Println(string(jsonData))
-  fmt.Println("**************************************************************")
 
 	if err != nil {
 		fmt.Println("Error marshalling JSON:", err)
@@ -184,7 +178,7 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	// Make the request
 	request.SetBasicAuth(app_id, secret_token)
-	response, err := r.client.Do(request)
+	response, err := r.client.Client.Do(request)
 	if err != nil {
 		fmt.Println("Error sending request: ", err)
 		return
@@ -201,10 +195,10 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	}
 
 	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
-  data.Id = types.StringValue(jsonBody.Data.ID)
+	data.Id = types.StringValue(jsonBody.Data.ID)
 	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
-  data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
-  data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
+	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -219,59 +213,49 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
-  if (data.Id.ValueString() == "") {
-    fmt.Println("_______________Nothing to read for Nil ID__________________")
-    return
-  } else {
-    //Fetch the data
-    app_id := os.Getenv("PC_APP_ID")
-    secret_token := os.Getenv("PC_SECRET_TOKEN")
-    endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id.ValueString()
+	if data.Id.ValueString() == "" {
+		fmt.Println("_______________Nothing to read for Nil ID__________________")
+		return
+	} else {
+		//Fetch the data
+		app_id := os.Getenv("PC_APP_ID")
+		secret_token := os.Getenv("PC_SECRET_TOKEN")
+		endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id.ValueString()
 
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println(endpoint)
-    fmt.Println(data)
-    fmt.Println(req.State)
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    request, err := http.NewRequest("GET", endpoint, nil)
-    request.SetBasicAuth(app_id, secret_token)
+		request, err := http.NewRequest("GET", endpoint, nil)
+		request.SetBasicAuth(app_id, secret_token)
 
-    if err != nil {
-      fmt.Println("Error:", err)
-      return
-    }
-    response, err := r.client.Do(request)
-    if err != nil {
-      fmt.Println("Error: ", err)
-    }
-    body, err := io.ReadAll(response.Body)
-    if err != nil {
-      fmt.Println("Error: ", err)
-    }
-    var jsonBody RootResource
-    err = json.Unmarshal(body, &jsonBody)
-    if err != nil {
-      fmt.Print(err)
-    }
-    // Overwrite the fetched data to the state
-    data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
-    data.Id = types.StringValue(jsonBody.Data.ID)
-    data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
-    data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
-    data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
+		if err != nil {
+			fmt.Println("Error:", err)
+			return
+		}
 
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    fmt.Println(&data)
-    fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
-    // Save updated data into Terraform state
-    resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-  }
+		response, err := r.client.Client.Do(request)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		body, err := io.ReadAll(response.Body)
+		if err != nil {
+			fmt.Println("Error: ", err)
+		}
+		var jsonBody RootResource
+		err = json.Unmarshal(body, &jsonBody)
+		if err != nil {
+			fmt.Print(err)
+		}
+		// Overwrite the fetched data to the state
+		data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+		data.Id = types.StringValue(jsonBody.Data.ID)
+		data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+		data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+		data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
+
+		fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+		fmt.Println(&data)
+		fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++")
+		// Save updated data into Terraform state
+		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+	}
 }
 
 func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {

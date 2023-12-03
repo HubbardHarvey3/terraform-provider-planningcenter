@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"terraform-provider-planningcenter/internal/client"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -72,7 +73,7 @@ func NewPeopleDataSource() datasource.DataSource {
 
 // PeopleDataSource defines the data source implementation.
 type PeopleDataSource struct {
-	client *PC_Client
+	client *client.PC_Client
 }
 
 // PeopleDataSourceModel describes the data source data model.
@@ -81,8 +82,8 @@ type PeopleDataSourceModel struct {
 	Id                 string       `tfsdk:"id"`
 	Name               types.String `tfsdk:"name"`
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
-	FirstName               types.String `tfsdk:"first_name"`
-	LastName               types.String `tfsdk:"last_name"`
+	FirstName          types.String `tfsdk:"first_name"`
+	LastName           types.String `tfsdk:"last_name"`
 }
 
 func (d *PeopleDataSource) Metadata(ctx context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
@@ -108,16 +109,16 @@ func (d *PeopleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Optional:            true,
 			},
 			"site_administrator": schema.BoolAttribute{
-        Computed: true,
+				Computed: true,
 				Optional: true,
 			},
 			"first_name": schema.StringAttribute{
 				MarkdownDescription: "First Name of the person",
-				Optional: true,
+				Optional:            true,
 			},
 			"last_name": schema.StringAttribute{
 				MarkdownDescription: "Last Name of the person",
-				Optional: true,
+				Optional:            true,
 			},
 		},
 	}
@@ -129,7 +130,7 @@ func (d *PeopleDataSource) Configure(ctx context.Context, req datasource.Configu
 		return
 	}
 
-	client, ok := req.ProviderData.(*PC_Client)
+	client, ok := req.ProviderData.(*client.PC_Client)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -156,7 +157,7 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	//Fetch the data
 	app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
-	endpoint := "https://api.planningcenteronline.com/people/v2/people/" + data.Id
+	endpoint := client.HostURL + "people/v2/people/" + data.Id
 	request, err := http.NewRequest("GET", endpoint, nil)
 
 	request.SetBasicAuth(app_id, secret_token)
@@ -165,7 +166,7 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		fmt.Println("Error:", err)
 		return
 	}
-	response, err := d.client.Do(request)
+	response, err := d.client.Client.Do(request)
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
