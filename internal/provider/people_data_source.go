@@ -5,13 +5,9 @@ package provider
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"terraform-provider-planningcenter/internal/client"
-	"time"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -25,47 +21,6 @@ var (
 	_ datasource.DataSourceWithConfigure = &PeopleDataSource{}
 )
 
-type Root struct {
-	Links interface{} `json:"links"`
-	Data  Person      `json:"data"`
-}
-type Person struct {
-	Type       string     `json:"type"`
-	ID         string     `json:"id"`
-	Attributes Attributes `json:"attributes"`
-}
-
-type Attributes struct {
-	AccountingAdministrator bool        `json:"accounting_administrator"`
-	Anniversary             interface{} `json:"anniversary"`
-	Avatar                  string      `json:"avatar"`
-	Birthdate               string      `json:"birthdate"`
-	CanCreateForms          bool        `json:"can_create_forms"`
-	CanEmailLists           bool        `json:"can_email_lists"`
-	Child                   bool        `json:"child"`
-	CreatedAt               time.Time   `json:"created_at"`
-	DemographicAvatarURL    string      `json:"demographic_avatar_url"`
-	DirectoryStatus         string      `json:"directory_status"`
-	FirstName               string      `json:"first_name"`
-	Gender                  string      `json:"gender"`
-	GivenName               interface{} `json:"given_name"`
-	Grade                   interface{} `json:"grade"`
-	GraduationYear          interface{} `json:"graduation_year"`
-	InactivatedAt           interface{} `json:"inactivated_at"`
-	LastName                string      `json:"last_name"`
-	MedicalNotes            interface{} `json:"medical_notes"`
-	Membership              string      `json:"membership"`
-	MiddleName              interface{} `json:"middle_name"`
-	Name                    string      `json:"name"`
-	Nickname                interface{} `json:"nickname"`
-	PassedBackgroundCheck   bool        `json:"passed_background_check"`
-	PeoplePermissions       string      `json:"people_permissions"`
-	RemoteID                interface{} `json:"remote_id"`
-	SchoolType              interface{} `json:"school_type"`
-	SiteAdministrator       bool        `json:"site_administrator"`
-	Status                  string      `json:"status"`
-	UpdatedAt               time.Time   `json:"updated_at"`
-}
 
 func NewPeopleDataSource() datasource.DataSource {
 	return &PeopleDataSource{}
@@ -79,8 +34,7 @@ type PeopleDataSource struct {
 // PeopleDataSourceModel describes the data source data model.
 type PeopleDataSourceModel struct {
 	Gender             types.String `tfsdk:"gender"`
-	Id                 string       `tfsdk:"id"`
-	Name               types.String `tfsdk:"name"`
+	Id                 types.String       `tfsdk:"id"`
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 	FirstName          types.String `tfsdk:"first_name"`
 	LastName           types.String `tfsdk:"last_name"`
@@ -103,10 +57,6 @@ func (d *PeopleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Person's ID",
 				Required:            true,
-			},
-			"name": schema.StringAttribute{
-				MarkdownDescription: "Name of the person",
-				Optional:            true,
 			},
 			"site_administrator": schema.BoolAttribute{
 				Computed: true,
@@ -153,37 +103,17 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	//Fetch the data
 	app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
-	endpoint := client.HostURL + "people/v2/people/" + data.Id
-	request, err := http.NewRequest("GET", endpoint, nil)
 
-	request.SetBasicAuth(app_id, secret_token)
+  //Fetch Data from the PC API
+  jsonBody := client.GetPeople(d.client, app_id, secret_token, data.Id.ValueString())
 
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
-	response, err := d.client.Client.Do(request)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-	var jsonBody Root
-	//var jsonBody map[string]map[string]interface{}
-	err = json.Unmarshal(body, &jsonBody)
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	data.Name = types.StringValue(jsonBody.Data.Attributes.Name)
-	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
-	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+  data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+  data.Id = types.StringValue(jsonBody.Data.ID)
+  data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+  data.FirstName = types.StringValue(jsonBody.Data.Attributes.FirstName)
+  data.LastName = types.StringValue(jsonBody.Data.Attributes.LastName)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

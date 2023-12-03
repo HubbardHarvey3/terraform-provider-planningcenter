@@ -23,7 +23,6 @@ type Attributes struct {
 	GraduationYear          interface{} `json:"graduation_year"`
 	InactivatedAt           interface{} `json:"inactivated_at"`
 	LastName                string      `json:"last_name"`
-	Name                    string      `json:"name"`
 	MedicalNotes            interface{} `json:"medical_notes"`
 	Membership              string      `json:"membership"`
 	MiddleName              interface{} `json:"middle_name"`
