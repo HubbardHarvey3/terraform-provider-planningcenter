@@ -9,9 +9,9 @@ terraform {
 provider "planningcenter" {
 }
 
-data "planningcenter_people" "test" {
-  id = "138378248"
-}
+//data "planningcenter_people" "test" {
+//  id = "138378248"
+//}
 
 resource "planningcenter_people" "new_test" {
   first_name         = "Testy"
@@ -32,6 +32,6 @@ output "tester_id" {
   value = planningcenter_people.new_test.id
 }
 
-output "site_admin" {
-  value = data.planningcenter_people.test.site_administrator
-}
+//output "site_admin" {
+//  value = data.planningcenter_people.test.site_administrator
+//}

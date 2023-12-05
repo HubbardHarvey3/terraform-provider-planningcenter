@@ -4,12 +4,9 @@
 package provider
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"terraform-provider-planningcenter/internal/client"
 
@@ -17,10 +14,12 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/booldefault"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/boolplanmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	// "github.com/hashicorp/terraform-plugin-log/tflog"
 )
-
 
 // Ensure provider defined types fully satisfy framework interfaces.
 var _ resource.Resource = &PeopleResource{}
@@ -38,7 +37,7 @@ type PeopleResource struct {
 // PeopleResourceModel describes the resource data model.
 type PeopleResourceModel struct {
 	Gender             types.String `tfsdk:"gender"`
-	Id                 types.String `tfsdk:"id"`
+  ID                 types.String `tfsdk:"id"`
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 	First_Name         types.String `tfsdk:"first_name"`
 	Last_Name          types.String `tfsdk:"last_name"`
@@ -61,10 +60,16 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Person's ID",
 				Computed:            true,
+        PlanModifiers: []planmodifier.String{
+                    stringplanmodifier.UseStateForUnknown(),
+                },
 			},
 			"site_administrator": schema.BoolAttribute{
 				Default:  booldefault.StaticBool(false),
 				Computed: true,
+        PlanModifiers: []planmodifier.Bool{
+                   boolplanmodifier.RequiresReplace(),
+        },
 				Optional: true,
 			},
 			"first_name": schema.StringAttribute{
@@ -108,57 +113,24 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	//Fetch the data
-	app_id := os.Getenv("PC_APP_ID")
-	secret_token := os.Getenv("PC_SECRET_TOKEN")
-	endpoint := "https://api.planningcenteronline.com/people/v2/people/"
-
 	// Map the Plan/Config to the RootResource type to send to PC
 	var responseData client.Root
 	responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
 	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
 	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
 	responseData.Data.Attributes.Gender = data.Gender.ValueString()
+	responseData.Data.ID = data.ID.ValueString()
 
-	// Convert struct to JSON
-	jsonData, err := json.Marshal(&responseData)
+	body := client.CreatePeople(r.client, r.client.AppID, r.client.Token, &responseData)
 
-
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		return
-	}
-
-	// Create a request with the JSON data
-	request, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(jsonData))
-	if err != nil {
-		fmt.Println("Error creating request:", err)
-		return
-	}
-
-	// Set the content type to application/json
-	request.Header.Set("Content-Type", "application/json")
-
-	// Make the request
-	request.SetBasicAuth(app_id, secret_token)
-	response, err := r.client.Client.Do(request)
-	if err != nil {
-		fmt.Println("Error sending request: ", err)
-		return
-	}
-
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
 	var jsonBody client.Root
-	err = json.Unmarshal(body, &jsonBody)
+	err := json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
 	}
 
 	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
-	data.Id = types.StringValue(jsonBody.Data.ID)
+	data.ID = types.StringValue(jsonBody.Data.ID)
 	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
 	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
 	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
@@ -176,25 +148,28 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	if data.Id.ValueString() == "" {
-		fmt.Println("_______________Nothing to read for Nil ID__________________")
-		return
-	} else {
-		//Fetch the data
-		app_id := os.Getenv("PC_APP_ID")
-		secret_token := os.Getenv("PC_SECRET_TOKEN")
+	//Fetch the data
+	app_id := os.Getenv("PC_APP_ID")
+	secret_token := os.Getenv("PC_SECRET_TOKEN")
 
-    jsonBody := client.GetPeople(r.client, app_id, secret_token, data.Id.ValueString())
+	jsonBody := client.GetPeople(r.client, app_id, secret_token, data.ID.ValueString())
 
-		// Overwrite the fetched data to the state
-		data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
-		data.Id = types.StringValue(jsonBody.Data.ID)
-		data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
-		data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
-		data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
-		// Save updated data into Terraform state
-		resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
-	}
+
+	// Overwrite the fetched data to the state
+	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+	data.ID = types.StringValue(jsonBody.Data.ID)
+	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
+
+	// Save updated data into Terraform state
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+
+	fmt.Println("READ--READ--READ--READ--READ--READ--READ")
+	fmt.Println("READ--READ--READ--READ--READ--READ--READ")
+	fmt.Println("READ--READ--READ--READ--READ--READ--READ")
+  fmt.Println(data.ID)
+  fmt.Println(resp.State)
 }
 
 func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -207,14 +182,32 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
-	// }
+	// Map the Plan/Config to the RootResource type to send to PC
+	var responseData client.Root
+	responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
+	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
+	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
+	responseData.Data.Attributes.Gender = data.Gender.ValueString()
+	responseData.Data.ID = data.ID.ValueString()
+  fmt.Println("UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE")
+  fmt.Println("UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE")
+  fmt.Println("UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE")
+	fmt.Println(data.ID)
 
+	body := client.UpdatePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
+
+	//convert json back into struct
+	var jsonBody client.Root
+	err := json.Unmarshal(body, &jsonBody)
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+	data.ID = types.StringValue(jsonBody.Data.ID)
+	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
@@ -228,7 +221,7 @@ func (r *PeopleResource) Delete(ctx context.Context, req resource.DeleteRequest,
 	if resp.Diagnostics.HasError() {
 		return
 	}
-  client.DeletePeople(r.client, r.client.AppID,r.client.Token, data.Id.ValueString())
+	client.DeletePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString())
 
 }
 

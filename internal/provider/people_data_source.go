@@ -21,7 +21,6 @@ var (
 	_ datasource.DataSourceWithConfigure = &PeopleDataSource{}
 )
 
-
 func NewPeopleDataSource() datasource.DataSource {
 	return &PeopleDataSource{}
 }
@@ -34,7 +33,7 @@ type PeopleDataSource struct {
 // PeopleDataSourceModel describes the data source data model.
 type PeopleDataSourceModel struct {
 	Gender             types.String `tfsdk:"gender"`
-	Id                 types.String       `tfsdk:"id"`
+	Id                 types.String `tfsdk:"id"`
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 	FirstName          types.String `tfsdk:"first_name"`
 	LastName           types.String `tfsdk:"last_name"`
@@ -106,14 +105,14 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 
-  //Fetch Data from the PC API
-  jsonBody := client.GetPeople(d.client, app_id, secret_token, data.Id.ValueString())
+	//Fetch Data from the PC API
+	jsonBody := client.GetPeople(d.client, app_id, secret_token, data.Id.ValueString())
 
-  data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
-  data.Id = types.StringValue(jsonBody.Data.ID)
-  data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
-  data.FirstName = types.StringValue(jsonBody.Data.Attributes.FirstName)
-  data.LastName = types.StringValue(jsonBody.Data.Attributes.LastName)
+	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
+	data.Id = types.StringValue(jsonBody.Data.ID)
+	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
+	data.FirstName = types.StringValue(jsonBody.Data.Attributes.FirstName)
+	data.LastName = types.StringValue(jsonBody.Data.Attributes.LastName)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
