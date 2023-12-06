@@ -9,9 +9,9 @@ terraform {
 provider "planningcenter" {
 }
 
-//data "planningcenter_people" "test" {
-//  id = "138378248"
-//}
+data "planningcenter_people" "test" {
+  id = "138378248"
+}
 
 resource "planningcenter_people" "new_test" {
   first_name         = "Tester"
@@ -40,6 +40,13 @@ output "gender" {
 
 output "tester_id" {
   value = planningcenter_people.new_test.id
+}
+
+resource "planningcenter_people" "import-me" {
+  first_name = "Importy"
+  last_name = "Importenson"
+  gender = "Male"
+
 }
 
 //output "site_admin" {
