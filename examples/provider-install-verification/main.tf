@@ -14,12 +14,22 @@ provider "planningcenter" {
 //}
 
 resource "planningcenter_people" "new_test" {
-  first_name         = "Testy"
+  first_name         = "Tester"
   last_name          = "McTesterson"
   site_administrator = false
   gender             = "Male"
 }
 
+resource "planningcenter_people" "testy" {
+  first_name         = "Testy"
+  last_name          = "McTesty"
+  site_administrator = false
+  gender             = "Female"
+}
+
+output "name_test" {
+  value = planningcenter_people.testy.first_name
+}
 output "name" {
   value = planningcenter_people.new_test.first_name
 }

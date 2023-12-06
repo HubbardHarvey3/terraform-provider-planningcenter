@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"os"
 	"terraform-provider-planningcenter/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -18,7 +17,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	// "github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -37,7 +35,7 @@ type PeopleResource struct {
 // PeopleResourceModel describes the resource data model.
 type PeopleResourceModel struct {
 	Gender             types.String `tfsdk:"gender"`
-  ID                 types.String `tfsdk:"id"`
+	ID                 types.String `tfsdk:"id"`
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 	First_Name         types.String `tfsdk:"first_name"`
 	Last_Name          types.String `tfsdk:"last_name"`
@@ -60,16 +58,16 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Person's ID",
 				Computed:            true,
-        PlanModifiers: []planmodifier.String{
-                    stringplanmodifier.UseStateForUnknown(),
-                },
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"site_administrator": schema.BoolAttribute{
 				Default:  booldefault.StaticBool(false),
 				Computed: true,
-        PlanModifiers: []planmodifier.Bool{
-                   boolplanmodifier.RequiresReplace(),
-        },
+				PlanModifiers: []planmodifier.Bool{
+					boolplanmodifier.RequiresReplace(),
+				},
 				Optional: true,
 			},
 			"first_name": schema.StringAttribute{
@@ -149,11 +147,8 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 	//Fetch the data
-	app_id := os.Getenv("PC_APP_ID")
-	secret_token := os.Getenv("PC_SECRET_TOKEN")
 
-	jsonBody := client.GetPeople(r.client, app_id, secret_token, data.ID.ValueString())
-
+	jsonBody := client.GetPeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString())
 
 	// Overwrite the fetched data to the state
 	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
@@ -165,11 +160,6 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 
-	fmt.Println("READ--READ--READ--READ--READ--READ--READ")
-	fmt.Println("READ--READ--READ--READ--READ--READ--READ")
-	fmt.Println("READ--READ--READ--READ--READ--READ--READ")
-  fmt.Println(data.ID)
-  fmt.Println(resp.State)
 }
 
 func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
@@ -189,10 +179,6 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
 	responseData.Data.Attributes.Gender = data.Gender.ValueString()
 	responseData.Data.ID = data.ID.ValueString()
-  fmt.Println("UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE")
-  fmt.Println("UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE")
-  fmt.Println("UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE--UPDATE")
-	fmt.Println(data.ID)
 
 	body := client.UpdatePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
 

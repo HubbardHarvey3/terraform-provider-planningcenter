@@ -69,10 +69,6 @@ func CreatePeople(client *PC_Client, app_id, secret_token string, responseData *
 
 func DeletePeople(client *PC_Client, app_id, secret_token, id string) {
 	endpoint := HostURL + "people/v2/people/" + id
-	fmt.Println("_________________DELETING____________________")
-	fmt.Println("_________________DELETING____________________")
-	fmt.Println("_________________DELETING____________________")
-	fmt.Println(endpoint)
 
 	// Create a request with the JSON data
 	request, err := http.NewRequest("DELETE", endpoint, nil)
@@ -96,10 +92,6 @@ func DeletePeople(client *PC_Client, app_id, secret_token, id string) {
 
 func UpdatePeople(client *PC_Client, app_id, secret_token, id string, responseData *Root) []byte {
 	endpoint := HostURL + "people/v2/people/" + id
-  fmt.Println("-------------------------------------")
-  fmt.Println("-------------------------------------")
-  fmt.Println("-------------------------------------")
-  fmt.Println(endpoint)
 
 	// Convert struct to JSON
 	jsonData, err := json.Marshal(responseData)
@@ -112,10 +104,6 @@ func UpdatePeople(client *PC_Client, app_id, secret_token, id string, responseDa
 	if err != nil {
 		fmt.Println("Error creating request:", err)
 	}
-  fmt.Println("-------------------------------------")
-  fmt.Println("-------------------------------------")
-  fmt.Println("-------------------------------------")
-  fmt.Println(string(jsonData))
 
 	// Set the content type to application/json
 	request.Header.Set("Content-Type", "application/json")
@@ -128,10 +116,6 @@ func UpdatePeople(client *PC_Client, app_id, secret_token, id string, responseDa
 	}
 	body, err := io.ReadAll(response.Body)
 	defer response.Body.Close()
-  fmt.Println("-------------------------------------")
-  fmt.Println("-------------------------------------")
-  fmt.Println("-------------------------------------")
-  fmt.Println(string(body))
 
 	return body
 
