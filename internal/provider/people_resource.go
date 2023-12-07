@@ -39,6 +39,7 @@ type PeopleResourceModel struct {
 	Site_Administrator types.Bool   `tfsdk:"site_administrator"`
 	First_Name         types.String `tfsdk:"first_name"`
 	Last_Name          types.String `tfsdk:"last_name"`
+	Birthdate          types.String `tfsdk:"birthdate"`
 }
 
 func (r *PeopleResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -77,6 +78,12 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			"last_name": schema.StringAttribute{
 				MarkdownDescription: "Last Name of the person",
 				Required:            true,
+			},
+			"birthdate": schema.StringAttribute{
+				MarkdownDescription: "Birth date of the person.  Formatted as YYYY-MM-DD",
+				Default:             nil,
+				Computed:            true,
+				Optional:            true,
 			},
 		},
 	}
@@ -117,6 +124,7 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
 	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
 	responseData.Data.Attributes.Gender = data.Gender.ValueString()
+	responseData.Data.Attributes.Birthdate = data.Birthdate.ValueString()
 	responseData.Data.ID = data.ID.ValueString()
 
 	body := client.CreatePeople(r.client, r.client.AppID, r.client.Token, &responseData)
@@ -131,6 +139,7 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	data.ID = types.StringValue(jsonBody.Data.ID)
 	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
 	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+	data.Birthdate = types.StringValue(jsonBody.Data.Attributes.Birthdate)
 	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 
 	// Save data into Terraform state
@@ -155,6 +164,7 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	data.ID = types.StringValue(jsonBody.Data.ID)
 	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
 	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
+	data.Birthdate = types.StringValue(jsonBody.Data.Attributes.Birthdate)
 	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 
 	// Save updated data into Terraform state
@@ -178,6 +188,7 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
 	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
 	responseData.Data.Attributes.Gender = data.Gender.ValueString()
+	responseData.Data.Attributes.Birthdate = data.Birthdate.ValueString()
 	responseData.Data.ID = data.ID.ValueString()
 
 	body := client.UpdatePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
@@ -194,6 +205,7 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	data.Site_Administrator = types.BoolValue(jsonBody.Data.Attributes.SiteAdministrator)
 	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
 	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
+	data.Birthdate = types.StringValue(jsonBody.Data.Attributes.Birthdate)
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

@@ -18,6 +18,7 @@ resource "planningcenter_people" "new_test" {
   last_name          = "McTesterson"
   site_administrator = false
   gender             = "Male"
+  birthdate          = "1980-05-22"
 }
 
 resource "planningcenter_people" "testy" {
@@ -25,6 +26,13 @@ resource "planningcenter_people" "testy" {
   last_name          = "McTesty"
   site_administrator = false
   gender             = "Female"
+}
+
+resource "planningcenter_people" "import-me" {
+  first_name = "Importy"
+  last_name  = "Importenson"
+  gender     = "Male"
+  birthdate  = "2012-02-10"
 }
 
 output "name_test" {
@@ -42,13 +50,6 @@ output "tester_id" {
   value = planningcenter_people.new_test.id
 }
 
-resource "planningcenter_people" "import-me" {
-  first_name = "Importy"
-  last_name = "Importenson"
-  gender = "Male"
-
+output "site_admin" {
+  value = data.planningcenter_people.test.site_administrator
 }
-
-//output "site_admin" {
-//  value = data.planningcenter_people.test.site_administrator
-//}
