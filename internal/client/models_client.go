@@ -1,5 +1,7 @@
 package client
 
+import ()
+
 type Root struct {
 	Links interface{} `json:"links"`
 	Data  Person      `json:"data"`
@@ -31,4 +33,33 @@ type Attributes struct {
 	RemoteID                interface{} `json:"remote_id"`
 	SiteAdministrator       bool        `json:"site_administrator"`
 	Status                  string      `json:"status"`
+}
+
+type EmailRoot struct {
+	Data Email `json:"data"`
+}
+
+type Email struct {
+	Type          string             `json:"type"`
+	ID            string             `json:"id"`
+	Attributes    EmailAttributes    `json:"attributes"`
+}
+
+type EmailAttributes struct {
+	Address  string `json:"address"`
+	Location string `json:"location"`
+	Primary  bool   `json:"primary"`
+}
+
+type EmailRelationships struct {
+	Person EmailPerson `json:"person"`
+}
+
+type EmailPerson struct {
+	Data EmailPersonData `json:"data"`
+}
+
+type EmailPersonData struct {
+	Type string `json:"person"`
+	ID   string `json:"id"`
 }

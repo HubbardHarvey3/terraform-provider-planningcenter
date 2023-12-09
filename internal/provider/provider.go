@@ -79,6 +79,7 @@ func (p *PlanningCenterProvider) Configure(ctx context.Context, req provider.Con
 func (p *PlanningCenterProvider) Resources(ctx context.Context) []func() resource.Resource {
 	return []func() resource.Resource{
 		NewPeopleResource,
+		NewEmailResource,
 	}
 }
 

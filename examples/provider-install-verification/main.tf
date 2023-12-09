@@ -35,6 +35,15 @@ resource "planningcenter_people" "import-me" {
   birthdate  = "2012-02-10"
 }
 
+resource "planningcenter_email" "Tester" {
+  primary = false
+  address = "testy@hcubedcoder.com"
+  location = "Home"
+  relationships = {
+    id = planningcenter_people.new_test.id
+  }
+}
+
 output "name_test" {
   value = planningcenter_people.testy.first_name
 }
