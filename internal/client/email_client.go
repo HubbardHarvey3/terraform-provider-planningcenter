@@ -14,12 +14,6 @@ func GetEmail(client *PC_Client, app_id, secret_token, id string) EmailRoot {
 	endpoint := HostURL + "people/v2/emails/" + id
 	request, err := http.NewRequest("GET", endpoint, nil)
 
-  fmt.Println("READ")
-  fmt.Println("READ")
-  fmt.Println("READ")
-  fmt.Println("READ")
-  fmt.Println(endpoint)
-
 	request.SetBasicAuth(app_id, secret_token)
 
 	if err != nil {
@@ -40,10 +34,6 @@ func GetEmail(client *PC_Client, app_id, secret_token, id string) EmailRoot {
 		fmt.Print(err)
 	}
 
-  fmt.Println("READ")
-  fmt.Println("READ")
-  fmt.Println("READ")
-  fmt.Println(jsonBody)
 	return jsonBody
 
 }
@@ -81,12 +71,6 @@ func CreateEmail(client *PC_Client, app_id, secret_token, peopleID string, respo
 
 func DeleteEmail(client *PC_Client, app_id, secret_token, id string) {
 	endpoint := HostURL + "people/v2/emails/" + id
-  fmt.Println("DELETE")
-  fmt.Println("DELETE")
-  fmt.Println("DELETE")
-  fmt.Println("DELETE")
-  fmt.Println(id)
-  fmt.Println(endpoint)
 
 	// Create a request with the JSON data
 	request, err := http.NewRequest("DELETE", endpoint, nil)

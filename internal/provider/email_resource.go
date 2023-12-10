@@ -122,7 +122,7 @@ func (r *EmailResource) Create(ctx context.Context, req resource.CreateRequest, 
 	var responseData client.EmailRoot
 	responseData.Data.Attributes.Address = data.Address.ValueString()
 	responseData.Data.Attributes.Location = data.Location.ValueString()
-  peopleID := data.Relationships.PeopleID.ValueString()
+	peopleID := data.Relationships.PeopleID.ValueString()
 	responseData.Data.Attributes.Primary = data.Primary.ValueBool()
 
 	body := client.CreateEmail(r.client, r.client.AppID, r.client.Token, peopleID, &responseData)
@@ -147,6 +147,7 @@ func (r *EmailResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
+
 
 	if resp.Diagnostics.HasError() {
 		return
@@ -206,9 +207,6 @@ func (r *EmailResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-  fmt.Println("DELETE")
-  fmt.Println("DELETE")
-  fmt.Println(data)
 
 	if resp.Diagnostics.HasError() {
 		return
