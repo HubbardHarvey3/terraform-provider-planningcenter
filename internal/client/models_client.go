@@ -35,14 +35,25 @@ type Attributes struct {
 	Status                  string      `json:"status"`
 }
 
+type EmailRootNoRelationship struct {
+	Data EmailNoRelationship `json:"data,omitempty"`
+}
+
+type EmailNoRelationship struct {
+	Type       string          `json:"type"`
+	ID         string          `json:"id"`
+	Attributes EmailAttributes `json:"attributes"`
+}
+
 type EmailRoot struct {
-	Data Email `json:"data"`
+	Data Email `json:"data,omitempty"`
 }
 
 type Email struct {
 	Type          string             `json:"type"`
 	ID            string             `json:"id"`
 	Attributes    EmailAttributes    `json:"attributes"`
+	Relationships EmailRelationships `json:"relationships,omitempty"`
 }
 
 type EmailAttributes struct {
@@ -52,14 +63,14 @@ type EmailAttributes struct {
 }
 
 type EmailRelationships struct {
-	Person EmailPerson `json:"person"`
+	Person EmailPerson `json:"person,omitempty"`
 }
 
 type EmailPerson struct {
-	Data EmailPersonData `json:"data"`
+	Data EmailPersonData `json:"data,omitempty"`
 }
 
 type EmailPersonData struct {
-	Type string `json:"person"`
-	ID   string `json:"id"`
+	Type string `json:"person,omitempty"`
+	ID   string `json:"id,omitempty"`
 }

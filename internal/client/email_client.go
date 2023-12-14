@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
 )
 
 func GetEmail(client *PC_Client, app_id, secret_token, id string) EmailRoot {
@@ -39,7 +38,7 @@ func GetEmail(client *PC_Client, app_id, secret_token, id string) EmailRoot {
 }
 
 // '{"data": {"type": "Email", "attributes": {"address": "tester@hcubedcoder.com", "location": "home", "primary": true}}}'
-func CreateEmail(client *PC_Client, app_id, secret_token, peopleID string, responseData *EmailRoot) []byte {
+func CreateEmail(client *PC_Client, app_id, secret_token, peopleID string, responseData *EmailRootNoRelationship) []byte {
 	endpoint := HostURL + "people/v2/people/" + peopleID + "/emails"
 
 	// Convert struct to JSON

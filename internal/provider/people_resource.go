@@ -206,6 +206,7 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	data.First_Name = types.StringValue(jsonBody.Data.Attributes.FirstName)
 	data.Last_Name = types.StringValue(jsonBody.Data.Attributes.LastName)
 	data.Birthdate = types.StringValue(jsonBody.Data.Attributes.Birthdate)
+
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

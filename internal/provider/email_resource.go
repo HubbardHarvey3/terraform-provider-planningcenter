@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"terraform-provider-planningcenter/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -51,7 +52,7 @@ func (r *EmailResource) Metadata(ctx context.Context, req resource.MetadataReque
 func (r *EmailResource) Schema(ctx context.Context, req resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
-		MarkdownDescription: "People resource",
+		MarkdownDescription: "Email resource",
 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
@@ -119,11 +120,11 @@ func (r *EmailResource) Create(ctx context.Context, req resource.CreateRequest, 
 	}
 
 	// Map the Plan/Config to the RootResource type to send to PC
-	var responseData client.EmailRoot
+	var responseData client.EmailRootNoRelationship
 	responseData.Data.Attributes.Address = data.Address.ValueString()
 	responseData.Data.Attributes.Location = data.Location.ValueString()
-	peopleID := data.Relationships.PeopleID.ValueString()
 	responseData.Data.Attributes.Primary = data.Primary.ValueBool()
+	peopleID := data.Relationships.PeopleID.ValueString()
 
 	body := client.CreateEmail(r.client, r.client.AppID, r.client.Token, peopleID, &responseData)
 
@@ -148,7 +149,6 @@ func (r *EmailResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -158,9 +158,10 @@ func (r *EmailResource) Read(ctx context.Context, req resource.ReadRequest, resp
 
 	// Overwrite the fetched data to the state
 	data.Address = types.StringValue(jsonBody.Data.Attributes.Address)
-	data.ID = types.StringValue(jsonBody.Data.ID)
 	data.Location = types.StringValue(jsonBody.Data.Attributes.Location)
 	data.Primary = types.BoolValue(jsonBody.Data.Attributes.Primary)
+	data.ID = types.StringValue(jsonBody.Data.ID)
+	data.Relationships.PeopleID = types.StringValue(jsonBody.Data.Relationships.Person.Data.ID)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -182,8 +183,10 @@ func (r *EmailResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	responseData.Data.Attributes.Address = data.Address.ValueString()
 	responseData.Data.Attributes.Location = data.Location.ValueString()
 	responseData.Data.Attributes.Primary = data.Primary.ValueBool()
+	responseData.Data.ID = data.ID.ValueString()
+	responseData.Data.Relationships.Person.Data.ID = data.Relationships.PeopleID.String()
 
-	body := client.UpdateEmail(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
+	body := client.UpdateEmail(r.client, r.client.AppID, r.client.Token, responseData.Data.ID, &responseData)
 
 	//convert json back into struct
 	var jsonBody client.EmailRoot
@@ -193,9 +196,10 @@ func (r *EmailResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	}
 
 	data.Address = types.StringValue(jsonBody.Data.Attributes.Address)
-	data.ID = types.StringValue(jsonBody.Data.ID)
 	data.Location = types.StringValue(jsonBody.Data.Attributes.Location)
 	data.Primary = types.BoolValue(jsonBody.Data.Attributes.Primary)
+	data.ID = types.StringValue(jsonBody.Data.ID)
+	data.Relationships.PeopleID = types.StringValue(jsonBody.Data.Relationships.Person.Data.ID)
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -207,7 +211,6 @@ func (r *EmailResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
-
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -216,5 +219,7 @@ func (r *EmailResource) Delete(ctx context.Context, req resource.DeleteRequest, 
 }
 
 func (r *EmailResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	input := strings.Split(req.ID, "_")
+	resp.State.SetAttribute(ctx, path.Root("id"), input[0])
+	resp.State.SetAttribute(ctx, path.Root("relationships").AtName("id"), input[1])
 }
