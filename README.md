@@ -91,8 +91,12 @@ make testacc
 ```
 
 ## TODO / Wishlist
-[x] Build People resource
-[x] get acc tests for people working
-[x] Build Email resource
-[ ] get acc tests for email working (Import not tested)
+- [x] Build People resource
+  - [x] get acc tests for people working
+
+- [x] Build Email resource
+  - [ ] get acc tests for email working (Import not tested)
+
+- [ ] getting proper versioning setup
+- [ ] setup proper release process
 
