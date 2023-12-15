@@ -64,6 +64,7 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"site_administrator": schema.BoolAttribute{
+        MarkdownDescription: "Bool that determines if the person has rights as a site administrator",
 				Default:  booldefault.StaticBool(false),
 				Computed: true,
 				PlanModifiers: []planmodifier.Bool{

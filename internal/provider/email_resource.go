@@ -57,12 +57,14 @@ func (r *EmailResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Email's ID",
+        Description: "The Email's ID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"primary": schema.BoolAttribute{
+        MarkdownDescription: "Whether or not the email is the person's primary or not",
 				Default:  booldefault.StaticBool(true),
 				Computed: true,
 				Optional: true,

@@ -99,4 +99,5 @@ make testacc
 
 - [ ] getting proper versioning setup
 - [ ] setup proper release process
+- [x] setup docs
 
