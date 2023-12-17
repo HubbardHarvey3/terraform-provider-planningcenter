@@ -8,7 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"terraform-provider-planningcenter/internal/client"
+	"planningcenter/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"

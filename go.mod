@@ -1,4 +1,4 @@
-module terraform-provider-planningcenter
+module planningcenter
 
 go 1.19
 

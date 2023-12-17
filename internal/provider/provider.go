@@ -6,9 +6,10 @@ package provider
 import (
 	"context"
 	"os"
-	"terraform-provider-planningcenter/internal/client"
+	"planningcenter/internal/client"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -67,8 +68,19 @@ func (p *PlanningCenterProvider) Configure(ctx context.Context, req provider.Con
 	if resp.Diagnostics.HasError() {
 		return
 	}
-	app_id := os.Getenv("PC_APP_ID")
+  app_id := os.Getenv("PC_APP_ID")
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
+
+  if (app_id == "") {
+    resp.Diagnostics.AddAttributeError(path.Root("app_id"), "Missing the App ID Environment Variable", "The environment variable 'PC_APP_ID' is missing and the provider can't communicate with Planning Center")
+  }
+  if (secret_token == "") {
+    resp.Diagnostics.AddAttributeError(path.Root("secret_token"), "Missing the Secret Token Environment Variable", "The environment variable 'PC_SECRET_TOKEN' is missing and the provider can't communicate with Planning Center")
+  }
+
+  if resp.Diagnostics.HasError() {
+    return
+  }
 
 	// Example client configuration for data sources and resources
 	client := client.NewPCClient(app_id, secret_token, client.HostURL)
