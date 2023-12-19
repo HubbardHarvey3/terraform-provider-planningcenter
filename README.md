@@ -4,8 +4,6 @@
 
 # Terraform Provider for Planning Center
 
-### Be warned: The provider is a side project and is under active development.  It isn't close to being stable at the moment.
-
 ## Requirements
 
 - [Terraform](https://developer.hashicorp.com/terraform/downloads) >= 1.0
@@ -13,13 +11,15 @@
 
 ## Building The Provider
 
-1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
+1. Pick your appropriate provider version from the release page
+2. Extract the provider to the root of your Terraform directory
+3. place the binary in the following path:
+  <br>a. Version will be the version of the provider you downloaded
+  <br>b. the OS will be your operating system, Linux, Windows, Darwin(Apple)
+  <br>c. the Arch is the architecture of your system, amd64, 386 etc.
+```.terraform.d/plugins/github.com/HubbardHarvey3/planningcenter/<version>/<os>_<arch>```
 
-```shell
-go install
-```
+If this project actually gets used, then I will probably setup future versions with the legit Terraform provider registry
 
 ## Adding Dependencies
 
