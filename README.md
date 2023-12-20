@@ -102,7 +102,8 @@ make testacc
 - [x] Build Email resource
   - [ ] get acc tests for email working (Import not tested)
 
-- [ ] getting proper versioning setup
-- [ ] setup proper release process
+- [x] getting proper versioning setup
+- [x] setup proper release process
 - [x] setup docs
+- [ ] add more features
 
