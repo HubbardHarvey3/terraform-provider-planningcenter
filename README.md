@@ -13,10 +13,7 @@
 
 1. Pick your appropriate provider version from the release page
 2. Extract the provider to the root of your Terraform directory
-3. place the binary in the following path:
-  <br>a. Version will be the version of the provider you downloaded
-  <br>b. the OS will be your operating system, Linux, Windows, Darwin(Apple)
-  <br>c. the Arch is the architecture of your system, amd64, 386 etc.
+    <br> a. you should see a path similar to the one below in the root of your TF directory
 ```.terraform.d/plugins/github.com/HubbardHarvey3/planningcenter/<version>/<os>_<arch>```
 
 If this project actually gets used, then I will probably setup future versions with the legit Terraform provider registry
@@ -37,13 +34,21 @@ Then commit the changes to `go.mod` and `go.sum`.
 
 ## Using the provider
 
-Coming Soon
+Before using the provider, ensure you have the following environment variables set by running the following commands:
+
+```export PC_APP_ID=<your app_id>```<br>
+```export PC_SECRET_TOKEN=<your secret>```
+
+The Application ID and Secret can be found in your PlanningCenter developer account: https://api.planningcenteronline.com/oauth/applications
+<br>
+More info from the PlanningCenter Docs: https://developer.planning.center/docs/#/overview/authentication
+
 ```hcl
 
 terraform {
   required_providers {
     planningcenter = {
-      source = TBD
+      source = "github.com/HubbardHarvey3/planningcenter"
     }
   }
 }

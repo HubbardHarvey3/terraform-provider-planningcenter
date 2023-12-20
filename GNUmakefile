@@ -1,8 +1,7 @@
 ARCHS := amd64 386 arm arm64
 OSES := linux windows darwin
-OUTPUT_DIR := dist
 VERSION ?= $(shell git describe --tags --abbrev=0)
-
+DIR_PATH := .terraform.d/plugins/github.com/HubbardHarvey3/planningcenter/$(VERSION)
 default: testacc
 
 
@@ -16,7 +15,7 @@ build:
 	for arch in $(ARCHS); do \
 		for system in $(OSES); do \
 			echo "Building $${system}_$${arch}"; \
-			GOARCH=$${arch} GOOS=$${system} go build -o $(OUTPUT_DIR)/$${system}_$${arch}/terraform-provider-planningcenter -ldflags="-X 'main.version=$(VERSION)'"; \
-			zip -r planningcenter_$(VERSION)_$${system}_$${arch} $(OUTPUT_DIR)/$${system}_$${arch}; \
+			GOARCH=$${arch} GOOS=$${system} go build -o $(DIR_PATH)/$${system}_$${arch}/terraform-provider-planningcenter -ldflags="-X 'main.version=$(VERSION)'"; \
+			zip -r planningcenter_$(VERSION)_$${system}_$${arch} $(DIR_PATH)/$${system}_$${arch}; \
 		done; \
 	done
