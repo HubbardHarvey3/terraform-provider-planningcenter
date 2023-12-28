@@ -3,6 +3,7 @@ package client
 import (
 	"fmt"
 	"net/http"
+  "io"
 )
 
 const HostURL = "https://api.planningcenteronline.com/"
@@ -22,4 +23,21 @@ func NewPCClient(id, token, endpoint string) *PC_Client {
 		Token:    token,
 		Endpoint: endpoint,
 	}
+}
+
+func (c *PC_Client) doRequest(req *http.Request, token, id string) ([]byte, error) {
+
+	req.SetBasicAuth(id, token)
+
+	response, err := c.Client.Do(req)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+  return body, err
 }

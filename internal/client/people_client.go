@@ -13,19 +13,11 @@ func GetPeople(client *PC_Client, app_id, secret_token, id string) Root {
 	endpoint := HostURL + "people/v2/people/" + id
 	request, err := http.NewRequest("GET", endpoint, nil)
 
-	request.SetBasicAuth(app_id, secret_token)
-
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
-	response, err := client.Client.Do(request)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
-		fmt.Println("Error: ", err)
-	}
+  body,err := client.doRequest(request, secret_token, app_id)
+  if err != nil {
+    fmt.Println("Failure during doRequest: ")
+    fmt.Print(err)
+  }
 
 	var jsonBody Root
 	err = json.Unmarshal(body, &jsonBody)
