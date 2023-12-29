@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -12,12 +11,15 @@ func GetPeople(client *PC_Client, app_id, secret_token, id string) Root {
 	//Fetch the data
 	endpoint := HostURL + "people/v2/people/" + id
 	request, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+	}
 
-  body,err := client.doRequest(request, secret_token, app_id)
-  if err != nil {
-    fmt.Println("Failure during doRequest: ")
-    fmt.Print(err)
-  }
+	body, err := client.doRequest(request, secret_token, app_id)
+	if err != nil {
+		fmt.Println("Failure during doRequest: ")
+		fmt.Print(err)
+	}
 
 	var jsonBody Root
 	err = json.Unmarshal(body, &jsonBody)
@@ -48,13 +50,11 @@ func CreatePeople(client *PC_Client, app_id, secret_token string, responseData *
 	request.Header.Set("Content-Type", "application/json")
 
 	// Make the request
-	request.SetBasicAuth(app_id, secret_token)
-	response, err := client.Client.Do(request)
+	body, err := client.doRequest(request, secret_token, app_id)
 	if err != nil {
-		fmt.Println("Error sending request: ", err)
+		fmt.Println("Failure during doRequest: ")
+		fmt.Print(err)
 	}
-	body, err := io.ReadAll(response.Body)
-	defer response.Body.Close()
 
 	return body
 }
@@ -69,15 +69,11 @@ func DeletePeople(client *PC_Client, app_id, secret_token, id string) {
 		return
 	}
 
-	request.SetBasicAuth(app_id, secret_token)
-	response, err := client.Client.Do(request)
-
-	if err != nil {
-		fmt.Println("Error sending request: ", err)
-	}
-	body, err := io.ReadAll(response.Body)
-	defer response.Body.Close()
-
+  body, error := client.doRequest(request, secret_token, app_id)
+  if error != nil {
+    fmt.Println("Failure during doRequest:")
+    fmt.Println(error)
+  }
 	fmt.Println(string(body))
 
 }
@@ -101,13 +97,11 @@ func UpdatePeople(client *PC_Client, app_id, secret_token, id string, responseDa
 	request.Header.Set("Content-Type", "application/json")
 
 	// Make the request
-	request.SetBasicAuth(app_id, secret_token)
-	response, err := client.Client.Do(request)
+	body, err := client.doRequest(request, secret_token, id)
 	if err != nil {
-		fmt.Println("Error sending request: ", err)
+		fmt.Println("Failure during doRequest: ")
+		fmt.Print(err)
 	}
-	body, err := io.ReadAll(response.Body)
-	defer response.Body.Close()
 
 	return body
 

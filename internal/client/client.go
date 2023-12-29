@@ -2,8 +2,8 @@ package client
 
 import (
 	"fmt"
+	"io"
 	"net/http"
-  "io"
 )
 
 const HostURL = "https://api.planningcenteronline.com/"
@@ -38,6 +38,7 @@ func (c *PC_Client) doRequest(req *http.Request, token, id string) ([]byte, erro
 	if err != nil {
 		fmt.Println("Error: ", err)
 	}
+	defer response.Body.Close()
 
-  return body, err
+	return body, err
 }
