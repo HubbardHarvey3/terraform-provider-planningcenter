@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func GetPeople(client *PC_Client, app_id, secret_token, id string) Root {
+func GetPeople(client *PC_Client, app_id, secret_token, id string) PeopleRoot {
 	//Fetch the data
 	endpoint := HostURL + "people/v2/people/" + id
 	request, err := http.NewRequest("GET", endpoint, nil)
@@ -15,13 +15,15 @@ func GetPeople(client *PC_Client, app_id, secret_token, id string) Root {
 		fmt.Println("Error creating request:", err)
 	}
 
+	//Send the request
 	body, err := client.doRequest(request, secret_token, app_id)
 	if err != nil {
 		fmt.Println("Failure during doRequest: ")
 		fmt.Print(err)
 	}
 
-	var jsonBody Root
+	//Convert from json to the struct
+	var jsonBody PeopleRoot
 	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
@@ -31,7 +33,7 @@ func GetPeople(client *PC_Client, app_id, secret_token, id string) Root {
 
 }
 
-func CreatePeople(client *PC_Client, app_id, secret_token string, responseData *Root) []byte {
+func CreatePeople(client *PC_Client, app_id, secret_token string, responseData *PeopleRoot) []byte {
 	endpoint := HostURL + "people/v2/people/"
 
 	// Convert struct to JSON
@@ -69,16 +71,16 @@ func DeletePeople(client *PC_Client, app_id, secret_token, id string) {
 		return
 	}
 
-  body, error := client.doRequest(request, secret_token, app_id)
-  if error != nil {
-    fmt.Println("Failure during doRequest:")
-    fmt.Println(error)
-  }
+	body, error := client.doRequest(request, secret_token, app_id)
+	if error != nil {
+		fmt.Println("Failure during doRequest:")
+		fmt.Println(error)
+	}
 	fmt.Println(string(body))
 
 }
 
-func UpdatePeople(client *PC_Client, app_id, secret_token, id string, responseData *Root) []byte {
+func UpdatePeople(client *PC_Client, app_id, secret_token, id string, responseData *PeopleRoot) []byte {
 	endpoint := HostURL + "people/v2/people/" + id
 
 	// Convert struct to JSON

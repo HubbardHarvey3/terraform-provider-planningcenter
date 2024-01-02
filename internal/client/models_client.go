@@ -2,10 +2,11 @@ package client
 
 import ()
 
-type Root struct {
+type PeopleRoot struct {
 	Links interface{} `json:"links"`
 	Data  Person      `json:"data"`
 }
+
 type Person struct {
 	Type       string     `json:"type"`
 	ID         string     `json:"id"`

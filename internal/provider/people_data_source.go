@@ -58,9 +58,9 @@ func (d *PeopleDataSource) Schema(ctx context.Context, req datasource.SchemaRequ
 				Required:            true,
 			},
 			"site_administrator": schema.BoolAttribute{
-        MarkdownDescription: "Bool that determines if the person has rights as a site administrator",
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "Bool that determines if the person has rights as a site administrator",
+				Computed:            true,
+				Optional:            true,
 			},
 			"first_name": schema.StringAttribute{
 				MarkdownDescription: "First Name of the person",

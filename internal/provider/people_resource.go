@@ -64,9 +64,9 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 				},
 			},
 			"site_administrator": schema.BoolAttribute{
-        MarkdownDescription: "Bool that determines if the person has rights as a site administrator",
-				Default:  booldefault.StaticBool(false),
-				Computed: true,
+				MarkdownDescription: "Bool that determines if the person has rights as a site administrator",
+				Default:             booldefault.StaticBool(false),
+				Computed:            true,
 				PlanModifiers: []planmodifier.Bool{
 					boolplanmodifier.RequiresReplace(),
 				},
@@ -119,8 +119,8 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	// Map the Plan/Config to the RootResource type to send to PC
-	var responseData client.Root
+	// Map the Plan/Config to the PeopleRootResource type to send to PC
+	var responseData client.PeopleRoot
 	responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
 	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
 	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
@@ -130,7 +130,7 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 
 	body := client.CreatePeople(r.client, r.client.AppID, r.client.Token, &responseData)
 
-	var jsonBody client.Root
+	var jsonBody client.PeopleRoot
 	err := json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
@@ -183,8 +183,8 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// Map the Plan/Config to the RootResource type to send to PC
-	var responseData client.Root
+	// Map the Plan/Config to the PeopleRootResource type to send to PC
+	var responseData client.PeopleRoot
 	responseData.Data.Attributes.LastName = data.Last_Name.ValueString()
 	responseData.Data.Attributes.FirstName = data.First_Name.ValueString()
 	responseData.Data.Attributes.SiteAdministrator = data.Site_Administrator.ValueBool()
@@ -195,7 +195,7 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	body := client.UpdatePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
 
 	//convert json back into struct
-	var jsonBody client.Root
+	var jsonBody client.PeopleRoot
 	err := json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)

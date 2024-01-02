@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"planningcenter/internal/client"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -57,17 +57,17 @@ func (r *EmailResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 		Attributes: map[string]schema.Attribute{
 			"id": schema.StringAttribute{
 				MarkdownDescription: "Email's ID",
-        Description: "The Email's ID",
+				Description:         "The Email's ID",
 				Computed:            true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.UseStateForUnknown(),
 				},
 			},
 			"primary": schema.BoolAttribute{
-        MarkdownDescription: "Whether or not the email is the person's primary or not",
-				Default:  booldefault.StaticBool(true),
-				Computed: true,
-				Optional: true,
+				MarkdownDescription: "Whether or not the email is the person's primary or not",
+				Default:             booldefault.StaticBool(true),
+				Computed:            true,
+				Optional:            true,
 			},
 			"location": schema.StringAttribute{
 				MarkdownDescription: "Location of the Email, eg. work or personal",

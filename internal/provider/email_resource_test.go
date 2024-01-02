@@ -27,11 +27,11 @@ func TestAccEmailResource(t *testing.T) {
 				),
 			},
 			// ImportState testing is skipped for now
-//			{
-//				ResourceName:      "planningcenter_email.test",
-//				ImportState:       true,
-//				ImportStateVerify: false,
-//			},
+			//			{
+			//				ResourceName:      "planningcenter_email.test",
+			//				ImportState:       true,
+			//				ImportStateVerify: false,
+			//			},
 			// Update and Read testing
 			{
 				Config: testAccEmailResourceConfig("two"),
