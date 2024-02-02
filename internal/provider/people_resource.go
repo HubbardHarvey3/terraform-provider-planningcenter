@@ -7,7 +7,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"planningcenter/internal/client"
+	client "github.com/HubbardHarvey3/terraform-planningcenter-client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -82,6 +82,7 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"birthdate": schema.StringAttribute{
 				MarkdownDescription: "Birth date of the person.  Formatted as YYYY-MM-DD",
+				Sensitive:			 true,
 				Default:             nil,
 				Computed:            true,
 				Optional:            true,

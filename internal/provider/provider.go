@@ -6,7 +6,7 @@ package provider
 import (
 	"context"
 	"os"
-	"planningcenter/internal/client"
+	client "github.com/HubbardHarvey3/terraform-planningcenter-client"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
