@@ -82,7 +82,7 @@ func (r *PeopleResource) Schema(ctx context.Context, req resource.SchemaRequest,
 			},
 			"birthdate": schema.StringAttribute{
 				MarkdownDescription: "Birth date of the person.  Formatted as YYYY-MM-DD",
-				Sensitive:			 true,
+				Sensitive:           true,
 				Default:             nil,
 				Computed:            true,
 				Optional:            true,
@@ -129,10 +129,14 @@ func (r *PeopleResource) Create(ctx context.Context, req resource.CreateRequest,
 	responseData.Data.Attributes.Birthdate = data.Birthdate.ValueString()
 	responseData.Data.ID = data.ID.ValueString()
 
-	body := client.CreatePeople(r.client, r.client.AppID, r.client.Token, &responseData)
+	body, err := client.CreatePeople(r.client, r.client.AppID, r.client.Token, &responseData)
+	if err != nil {
+		resp.Diagnostics.AddError("Error during CreatePeople", fmt.Sprintf("Error : %v", err))
+		return
+	}
 
 	var jsonBody client.PeopleRoot
-	err := json.Unmarshal(body, &jsonBody)
+	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -159,7 +163,11 @@ func (r *PeopleResource) Read(ctx context.Context, req resource.ReadRequest, res
 	}
 	//Fetch the data
 
-	jsonBody := client.GetPeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString())
+	jsonBody, err := client.GetPeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error during GetPeople", fmt.Sprintf("Error : %v", err))
+		return
+	}
 
 	// Overwrite the fetched data to the state
 	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
@@ -193,11 +201,11 @@ func (r *PeopleResource) Update(ctx context.Context, req resource.UpdateRequest,
 	responseData.Data.Attributes.Birthdate = data.Birthdate.ValueString()
 	responseData.Data.ID = data.ID.ValueString()
 
-	body := client.UpdatePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
+	body, err := client.UpdatePeople(r.client, r.client.AppID, r.client.Token, data.ID.ValueString(), &responseData)
 
 	//convert json back into struct
 	var jsonBody client.PeopleRoot
-	err := json.Unmarshal(body, &jsonBody)
+	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
 	}

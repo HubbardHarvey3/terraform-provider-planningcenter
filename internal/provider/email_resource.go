@@ -7,8 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 	client "github.com/HubbardHarvey3/terraform-planningcenter-client"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -128,10 +128,14 @@ func (r *EmailResource) Create(ctx context.Context, req resource.CreateRequest, 
 	responseData.Data.Attributes.Primary = data.Primary.ValueBool()
 	peopleID := data.Relationships.PeopleID.ValueString()
 
-	body := client.CreateEmail(r.client, r.client.AppID, r.client.Token, peopleID, &responseData)
+	body, err := client.CreateEmail(r.client, r.client.AppID, r.client.Token, peopleID, &responseData)
+	if err != nil {
+		resp.Diagnostics.AddError("Error during CreateEmail", fmt.Sprintf("Error : %v", err))
+		return
+	}
 
 	var jsonBody client.EmailRoot
-	err := json.Unmarshal(body, &jsonBody)
+	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
 	}
@@ -156,7 +160,11 @@ func (r *EmailResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 	//Fetch the data
 
-	jsonBody := client.GetEmail(r.client, r.client.AppID, r.client.Token, data.ID.ValueString())
+	jsonBody, err := client.GetEmail(r.client, r.client.AppID, r.client.Token, data.ID.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error during GetEmail", fmt.Sprintf("Error : %v", err))
+		return
+	}
 
 	// Overwrite the fetched data to the state
 	data.Address = types.StringValue(jsonBody.Data.Attributes.Address)
@@ -188,11 +196,15 @@ func (r *EmailResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	responseData.Data.ID = data.ID.ValueString()
 	responseData.Data.Relationships.Person.Data.ID = data.Relationships.PeopleID.String()
 
-	body := client.UpdateEmail(r.client, r.client.AppID, r.client.Token, responseData.Data.ID, &responseData)
+	body, err := client.UpdateEmail(r.client, r.client.AppID, r.client.Token, responseData.Data.ID, &responseData)
+	if err != nil {
+		resp.Diagnostics.AddError("Error during UpdateEmail", fmt.Sprintf("Error : %v", err))
+		return
+	}
 
 	//convert json back into struct
 	var jsonBody client.EmailRoot
-	err := json.Unmarshal(body, &jsonBody)
+	err = json.Unmarshal(body, &jsonBody)
 	if err != nil {
 		fmt.Print(err)
 	}

@@ -6,8 +6,8 @@ package provider
 import (
 	"context"
 	"fmt"
-	"os"
 	client "github.com/HubbardHarvey3/terraform-planningcenter-client"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
@@ -107,7 +107,10 @@ func (d *PeopleDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	secret_token := os.Getenv("PC_SECRET_TOKEN")
 
 	//Fetch Data from the PC API
-	jsonBody := client.GetPeople(d.client, app_id, secret_token, data.Id.ValueString())
+	jsonBody, err := client.GetPeople(d.client, app_id, secret_token, data.Id.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Error during GetPeople", fmt.Sprintf("Error ::: %v", err))
+	}
 
 	data.Gender = types.StringValue(jsonBody.Data.Attributes.Gender)
 	data.Id = types.StringValue(jsonBody.Data.ID)
